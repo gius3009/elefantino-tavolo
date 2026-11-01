@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Elefantino Tavolo</title>
+<style>
+:root{--felt:#0f3b2a;--felt2:#14523a;--card:#1b2b24;--ink:#f5efe0;--ink2:#c9c2b0;--gold:#e8b64a;--red:#e05a4a;--ok:#5cc98a;--line:rgba(245,239,224,.18)}
+:root:not([data-theme="light"]){color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--felt:#0f3b2a}}
+:root[data-theme="dark"]{--felt:#0f3b2a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(ellipse at 50% 40%,var(--felt2),var(--felt) 70%);color:var(--ink);font:16px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.wrap{max-width:520px;margin:0 auto;min-height:100%;padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
+h1{font-size:28px;margin:24px 0 4px;text-align:center;color:var(--gold);letter-spacing:.5px}
+.sub{text-align:center;color:var(--ink2);margin:0 0 12px}
+label{font-size:14px;color:var(--ink2)}
+input{width:100%;font-size:20px;padding:14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ink);margin-top:6px}
+input#code{text-transform:uppercase;letter-spacing:6px;text-align:center;font-weight:700}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:14px 18px;min-height:48px;background:var(--gold);color:#2a1d05;cursor:pointer}
+button.sec{background:rgba(0,0,0,.3);color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.4}
+.box{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:16px;padding:14px}
+.msg{min-height:22px;text-align:center;color:var(--gold);font-weight:600}
+.err{color:var(--red)}
+.seat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.seat:last-child{border:0}
+.tag{font-size:13px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.12)}
+.tag.ok{background:var(--ok);color:#06210f}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--ink2)}
+.opps{display:grid;gap:8px}
+.opp{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.22);border:2px solid transparent}
+.opp.turn{border-color:var(--gold)}
+.opp .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opp .st{font-size:13px;color:var(--ink2)}
+.opp .pts{font-weight:700;color:var(--gold);text-align:right}
+.mini{display:flex;gap:3px;grid-column:1/3}
+.mini img{width:30px;border-radius:3px}
+.table{min-height:150px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;padding:10px;border-radius:18px;border:1px dashed var(--line)}
+.played{text-align:center;font-size:12px;color:var(--ink2)}
+.played img{width:66px;display:block;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.4);margin-bottom:3px}
+.played.win img{outline:3px solid var(--gold)}
+.banner{text-align:center;font-weight:700;font-size:18px;min-height:26px}
+.banner.me{color:var(--gold)}
+.hand{display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
+.hand img{width:62px;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.4);transition:transform .12s}
+.hand.active img{cursor:pointer}
+.hand.active img:active{transform:translateY(-10px)}
+.bids{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.bids button{min-width:52px;font-size:20px}
+.bids button.no{text-decoration:line-through;background:rgba(0,0,0,.3);color:var(--ink2)}
+.me-st{text-align:center;color:var(--ink2);font-size:14px}
+.timer{height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.timer i{display:block;height:100%;background:var(--gold);transition:width .25s linear}
+table{width:100%;border-collapse:collapse}
+td{padding:8px 4px;border-bottom:1px solid var(--line)}
+td:last-child{text-align:right;font-weight:700;color:var(--gold)}
+.hide{display:none!important}
+@media (min-width:420px){.hand img{width:70px}.played img{width:74px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="join">
+  <h1>Elefantino</h1>
+  <p class="sub">Entra nel tavolo dei tuoi amici</p>
+  <div class="box" style="display:grid;gap:14px">
+    <div><label for="name">Il tuo nome</label><input id="name" maxlength="14" autocomplete="nickname"></div>
+    <div><label for="code">Codice del tavolo</label><input id="code" maxlength="4" autocomplete="off"></div>
+    <button id="go">Entra al tavolo</button>
+    <div id="jmsg" class="msg"></div>
+  </div>
+  <p class="sub" style="font-size:13px">Il tavolo lo apre un amico dall'app Elefantino su Android, in "Con gli amici". Ti manda il codice e tu lo scrivi qui.</p>
+</section>
+
+<section id="lobby" class="hide">
+  <h1>Tavolo <span id="lcode"></span></h1>
+  <p class="sub" id="lsub">In attesa che tutti siano pronti</p>
+  <div class="box" id="seats"></div>
+  <button id="ready">Sono pronto</button>
+  <div class="msg" id="lmsg"></div>
+  <button class="sec" id="leave1">Esci dal tavolo</button>
+</section>
+
+<section id="game" class="hide" style="display:flex;flex-direction:column;gap:10px">
+  <div class="top"><span id="ground"></span><span id="gstatus"></span></div>
+  <div class="opps" id="opps"></div>
+  <div class="banner" id="banner"></div>
+  <div class="table" id="tbl"></div>
+  <div class="timer"><i id="tbar" style="width:0"></i></div>
+  <div class="me-st" id="mest"></div>
+  <div class="bids hide" id="bids"></div>
+  <div class="hand" id="hand"></div>
+  <div class="box hide" id="score"></div>
+  <button class="sec" id="leave2">Esci dalla partita</button>
+</section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-database-compat.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+firebase.initializeApp({apiKey:"AIzaSyDlhPGQRw8YJdZgX7J3PgMvh82LLIr1Fmg",authDomain:"elefantino-c1fdc.firebaseapp.com",projectId:"elefantino-c1fdc",databaseURL:"https://elefantino-c1fdc-default-rtdb.europe-west1.firebasedatabase.app"});
+const db=firebase.database();
+let uid=null,code=null,room=null,snap=null,subs=[],myReady=false,sentKey=null,tick=null,turnEnd=0,turnTot=0;
+
+const RN={ASSO:"asso",DUE:"due",TRE:"tre",QUATTRO:"quattro",CINQUE:"cinque",SEI:"sei",SETTE:"sette",FANTE:"donna",CAVALLO:"cavallo",RE:"re"};
+const img=c=>c?`carte/${RN[c.rank]}_${c.suit.toLowerCase()}.webp`:"carte/card_back.webp";
+const isBack=c=>!c||(c.suit==="BASTONI"&&c.rank==="DUE"); // carta coperta mandata dall'arbitro
+const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+$("name").value=store.get("el_name")||"";
+const qc=new URLSearchParams(location.search).get("c");
+$("code").value=(qc||store.get("el_code")||"").toUpperCase();
+function show(id){["join","lobby","game"].forEach(s=>$(s).classList.toggle("hide",s!==id))}
+function jmsg(t,err){$("jmsg").textContent=t;$("jmsg").classList.toggle("err",!!err)}
+
+$("go").onclick=async()=>{
+  const name=$("name").value.trim().slice(0,14), c=$("code").value.trim().toUpperCase();
+  if(!name){jmsg("Scrivi il tuo nome",1);return}
+  if(!/^[A-HJ-NP-Z2-9]{4}$/.test(c)){jmsg("Il codice ha 4 caratteri, controllalo",1);return}
+  store.set("el_name",name);store.set("el_code",c);
+  $("go").disabled=true;jmsg("Mi collego...");
+  try{
+    if(!firebase.auth().currentUser) await firebase.auth().signInAnonymously();
+    uid=firebase.auth().currentUser.uid;code=c;room=db.ref("rooms/"+c);
+    const meta=(await room.child("meta").get()).val();
+    if(!meta||meta.status==="ended"){jmsg("Il tavolo "+c+" non esiste o è chiuso. Controlla il codice.",1);$("go").disabled=false;return}
+    const ps=(await room.child("players").get()).val()||{};
+    const already=!!ps[uid];
+    if(!already&&(meta.status!=="lobby"||Object.keys(ps).length>=(meta.size||4))){jmsg("Il tavolo è pieno o la partita è già cominciata.",1);$("go").disabled=false;return}
+    const me=room.child("players/"+uid);
+    if(already) await me.update({online:true,joined:firebase.database.ServerValue.TIMESTAMP});
+    else await me.set({name,joined:firebase.database.ServerValue.TIMESTAMP,ready:false,online:true});
+    listen();
+    $("lcode").textContent=c;show("lobby");
+  }catch(e){jmsg("Non riesco a entrare. Controlla internet e riprova. ("+(e.code||e.message)+")",1);$("go").disabled=false}
+};
+
+function listen(){
+  const conn=db.ref(".info/connected");
+  const f1=conn.on("value",s=>{const o=room.child("players/"+uid+"/online");if(s.val()===true){o.onDisconnect().set(false);o.set(true);$("gstatus").textContent=""}else{$("gstatus").textContent="Mi ricollego..."}});
+  subs.push(()=>conn.off("value",f1));
+  const v=room.child("views/"+uid);
+  const f2=v.on("value",s=>{const j=s.val();if(!j)return;try{snap=JSON.parse(j);render()}catch(e){}},e=>{$("lmsg").textContent="Accesso al tavolo negato."});
+  subs.push(()=>v.off("value",f2));
+  const m=room.child("meta");
+  const f3=m.on("value",s=>{const x=s.val();if(!x)return;if(x.hostOnline===false&&snap&&snap.stage==="PLAYING")$("gstatus").textContent="Chi ha aperto il tavolo si è scollegato, attendi...";});
+  subs.push(()=>m.off("value",f3));
+}
+
+function leave(){
+  if(!confirm("Vuoi davvero uscire dal tavolo?"))return;
+  subs.forEach(f=>f());subs=[];
+  if(room&&uid){const me=room.child("players/"+uid);me.child("online").onDisconnect().cancel();me.remove()}
+  snap=null;$("go").disabled=false;jmsg("");show("join");
+}
+$("leave1").onclick=leave;$("leave2").onclick=leave;
+$("ready").onclick=()=>{myReady=!myReady;room.child("players/"+uid+"/ready").set(myReady);renderLobby()};
+
+function send(t,v,card){
+  const m={uid,t,v:v||0};if(card){m.suit=card.suit;m.rank=card.rank}
+  room.child("actions").push().set(m);
+}
+
+function render(){
+  if(!snap)return;
+  if(snap.stage==="LOBBY"||snap.stage==="COUNTDOWN"||!snap.game){show("lobby");renderLobby();return}
+  show("game");renderGame();
+}
+
+function renderLobby(){
+  const s=snap;
+  $("seats").innerHTML=(s?s.seats:[]).map(x=>`<div class="seat"><span>${esc(x.name)}${x.id===uid?" (tu)":""}${x.bot?' <span class="tag">bot</span>':""}</span><span class="tag ${x.ready||x.bot?"ok":""}">${x.ready||x.bot?"pronto":"attende"}</span></div>`).join("")||'<div class="seat">Collegamento al tavolo...</div>';
+  const mine=s&&s.seats.find(x=>x.id===uid);if(mine)myReady=!!mine.ready;
+  $("ready").textContent=myReady?"Non sono più pronto":"Sono pronto";
+  $("ready").classList.toggle("sec",myReady);
+  $("lsub").textContent=s&&s.stage==="COUNTDOWN"?"Si parte tra "+s.countdown+"...":(s?`${s.seats.length} di ${s.size} al tavolo, ${s.startCards} carte al primo giro`:"In attesa");
+  $("lmsg").textContent=s&&s.notice?s.notice:"";
+}
+
+function renderGame(){
+  const s=snap,g=s.game,P=g.players,n=P.length;
+  const mi=P.findIndex(p=>p.id===uid); if(mi<0)return;
+  const me=P[mi],cur=P[g.currentPlayerIndex];
+  const blind=g.cardsPerPlayer===1;
+  const myTurn=g.currentPlayerIndex===mi&&(g.phase==="BIDDING"||g.phase==="PLAYING");
+  $("ground").textContent=`${g.currentRound}° giro · ${g.cardsPerPlayer} ${g.cardsPerPlayer===1?"carta":"carte"}${blind?" · al buio":""}`;
+  // avversari in senso orario dopo di me
+  let h="";
+  for(let k=1;k<n;k++){const p=P[(mi+k)%n];const turn=(mi+k)%n===g.currentPlayerIndex&&(g.phase==="BIDDING"||g.phase==="PLAYING");
+    const seat=s.seats.find(x=>x.id===p.id);
+    const bid=p.bid==null?"deve dichiarare":`dichiara ${p.bid}, prese ${p.tricks}`;
+    const off=(seat&&!seat.online&&!seat.bot)||p.offline?" · scollegato":"";
+    const mini=blind&&p.hand.length?`<div class="mini">${p.hand.map(c=>`<img src="${img(c)}" alt="">`).join("")}</div>`:"";
+    h+=`<div class="opp ${turn?"turn":""}"><span class="nm">${esc(p.name)}${seat&&seat.bot?' <span class="tag">bot</span>':""}</span><span class="pts">${p.totalScore} pt</span><span class="st">${bid}${off}</span><span class="st" style="text-align:right">${p.hand.length} in mano</span>${mini}</div>`}
+  $("opps").innerHTML=h;
+  // tavolo
+  const order=[];for(let k=0;k<n;k++)order.push(P[(g.firstPlayerIndex+k)%n]);
+  $("tbl").innerHTML=order.filter(p=>g.tableCards&&g.tableCards[p.id]).map(p=>`<div class="played ${g.trickWinnerId===p.id?"win":""}"><img src="${img(g.tableCards[p.id])}" alt=""><span>${p.id===uid?"tu":esc(p.name)}</span></div>`).join("")||'<span style="color:var(--ink2)">Nessuna carta sul tavolo</span>';
+  // messaggio
+  let b="",bm=false;
+  if(s.notice)b=s.notice;
+  else if(g.phase==="GAME_OVER")b="Partita finita";
+  else if(g.phase==="ROUND_END")b=`Fine giro${s.nextRoundIn?" · il prossimo tra "+s.nextRoundIn:""}`;
+  else if(g.trickWinnerId){const w=P.find(p=>p.id===g.trickWinnerId);b=`PRENDE ${w&&w.id===uid?"TU":esc(w?w.name:"").toUpperCase()}!`;bm=w&&w.id===uid}
+  else if(myTurn){b=g.phase==="BIDDING"?"Tocca a te: quante prese fai?":"Tocca a te: gioca una carta";bm=true}
+  else if(cur)b=`Tocca a ${esc(cur.name)}`;
+  $("banner").innerHTML=b;$("banner").classList.toggle("me",bm);
+  $("mest").textContent=`Tu: ${me.bid==null?"devi dichiarare":"dichiari "+me.bid+", prese "+me.tricks} · ${me.totalScore} pt`;
+  // dichiarazione
+  const bids=$("bids");
+  if(myTurn&&g.phase==="BIDDING"&&me.bid==null){
+    const others=P.filter(p=>p.id!==uid);const last=others.every(p=>p.bid!=null);
+    const sum=others.reduce((a,p)=>a+(p.bid||0),0);const no=last?g.cardsPerPlayer-sum:-1;
+    let bh="";for(let v=0;v<=g.cardsPerPlayer;v++)bh+=`<button data-v="${v}" class="${v===no?"no":""}" ${v===no?"disabled":""}>${v}</button>`;
+    bids.innerHTML=bh;bids.classList.remove("hide");
+    bids.querySelectorAll("button[data-v]").forEach(x=>x.onclick=()=>{const key="b"+g.currentRound+"-"+x.dataset.v;if(sentKey===key)return;sentKey=key;bids.classList.add("hide");send("bid",+x.dataset.v)});
+  }else bids.classList.add("hide");
+  // mano
+  const canPlay=myTurn&&g.phase==="PLAYING"&&!g.trickWinnerId&&!(g.tableCards&&g.tableCards[uid]);
+  const hand=$("hand");hand.classList.toggle("active",canPlay);
+  hand.innerHTML=me.hand.map((c,i)=>`<img data-i="${i}" src="${blind||isBack(c)&&blind?"carte/card_back.webp":img(c)}" alt="carta">`).join("");
+  if(canPlay)hand.querySelectorAll("img").forEach(x=>x.onclick=()=>{const c=me.hand[+x.dataset.i];const key="p"+g.currentRound+"-"+P.reduce((a,p)=>a+p.hand.length,0);if(sentKey===key)return;sentKey=key;x.style.visibility="hidden";hand.classList.remove("active");send("play",0,c)});
+  // punteggi
+  const sc=$("score");
+  if(g.phase==="ROUND_END"||g.phase==="GAME_OVER"){
+    const rows=[...P].sort((a,c)=>c.totalScore-a.totalScore).map((p,i)=>`<tr><td>${i+1}° ${p.id===uid?"tu":esc(p.name)}</td><td>${p.bid??"-"} / ${p.tricks}</td><td>${p.totalScore} pt</td></tr>`).join("");
+    sc.innerHTML=`<div style="font-weight:700;margin-bottom:6px">${g.phase==="GAME_OVER"?"Classifica finale":"Punteggi"}</div><table><tr><td style="color:var(--ink2)">Giocatore</td><td style="color:var(--ink2)">Dich. / prese</td><td style="color:var(--ink2)">Totale</td></tr>${rows}</table>${g.phase==="GAME_OVER"&&s.endReason?`<p>${esc(s.endReason)}</p>`:""}`;
+    sc.classList.remove("hide");
+  }else sc.classList.add("hide");
+  // timer del turno
+  turnTot=s.turnTotalMs||0;turnEnd=s.turnMsLeft?Date.now()+s.turnMsLeft:0;
+  if(!tick)tick=setInterval(()=>{const w=turnTot&&turnEnd?Math.max(0,(turnEnd-Date.now())/turnTot*100):0;$("tbar").style.width=w+"%"},250);
+}
+</script>
+</body>
+</html>
