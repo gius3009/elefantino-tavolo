@@ -175,6 +175,16 @@ function render(){
   show("game");renderGame();
 }
 
+function noticeText(t){
+  // dalla 2.8 l'avviso arriva come codice "chiave|arg|nome" (ogni telefono lo traduce nella sua lingua)
+  if(!t)return "";const i=t.indexOf("|");if(i<0)return t;
+  const k=t.slice(0,i),rest=t.slice(i+1);
+  if(k==="reconnecting"){const j=rest.indexOf("|");const sec=j<0?rest:rest.slice(0,j);const nm=(j<0?"":rest.slice(j+1))||"Un giocatore";return nm+" ha perso la connessione. Riconnessione... "+sec}
+  const nm=rest||"Un giocatore";
+  const M={left:" è uscito: al suo posto gioca il computer",dropped:" è uscito: l'abbiamo sostituito con il computer",back:" è tornato al tavolo",reconnected:" è di nuovo connesso"};
+  return M[k]?nm+M[k]:t;
+}
+
 function renderLobby(){
   const s=snap;
   $("seats").innerHTML=(s?s.seats:[]).map(x=>`<div class="seat"><span>${esc(x.name)}${x.id===uid?" (tu)":""}${x.bot?' <span class="tag">bot</span>':""}</span><span class="tag ${x.ready||x.bot?"ok":""}">${x.ready||x.bot?"pronto":"attende"}</span></div>`).join("")||'<div class="seat">Collegamento al tavolo...</div>';
@@ -182,7 +192,7 @@ function renderLobby(){
   $("ready").textContent=myReady?"Non sono più pronto":"Sono pronto";
   $("ready").classList.toggle("sec",myReady);
   $("lsub").textContent=s&&s.stage==="COUNTDOWN"?"Si parte tra "+s.countdown+"...":(s?`${s.seats.length} di ${s.size} al tavolo, ${s.startCards} carte al primo giro`:"In attesa");
-  $("lmsg").textContent=s&&s.notice?s.notice:"";
+  $("lmsg").textContent=s&&s.notice?noticeText(s.notice):"";
 }
 
 function renderGame(){
@@ -206,7 +216,7 @@ function renderGame(){
   $("tbl").innerHTML=order.filter(p=>g.tableCards&&g.tableCards[p.id]).map(p=>`<div class="played ${g.trickWinnerId===p.id?"win":""}"><img src="${img(g.tableCards[p.id])}" alt=""><span>${p.id===uid?"tu":esc(p.name)}</span></div>`).join("")||'<span style="color:var(--ink2)">Nessuna carta sul tavolo</span>';
   // messaggio
   let b="",bm=false;
-  if(s.notice)b=s.notice;
+  if(s.notice)b=esc(noticeText(s.notice));
   else if(g.phase==="GAME_OVER")b="Partita finita";
   else if(g.phase==="ROUND_END")b=`Fine giro${s.nextRoundIn?" · il prossimo tra "+s.nextRoundIn:""}`;
   else if(g.trickWinnerId){const w=P.find(p=>p.id===g.trickWinnerId);b=`PRENDE ${w&&w.id===uid?"TU":esc(w?w.name:"").toUpperCase()}!`;bm=w&&w.id===uid}
